@@ -89,9 +89,15 @@ void jit(const char code[], size_t size, x86::Assembler &assm, char *memory)
             assm.dec(x86::byte_ptr(ptr));
             break;
         case '.':
+        #ifdef __linux__
+            assm.xor_(x86::rdi, x86::rdi);
+            assm.mov(x86::rdi, x86::byte_ptr(ptr));
+            assm.call(putchar);
+        #elif defined(_WIN64)
             assm.xor_(x86::rcx, x86::rcx);
             assm.mov(x86::cl, x86::byte_ptr(ptr));
             assm.call(putchar);
+        #endif            
             break;
         case ',':
             assm.call(getchar);

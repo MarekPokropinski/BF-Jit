@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <unordered_map>
+#include <vector>
 using namespace std;
 
 const char OPEN_LOOP = '[';
@@ -99,21 +100,41 @@ void interpret(const char code[], size_t size)
     }
 }
 
-const char code1[] = "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
-
-int main()
+vector<char> load_code(const char *filename)
 {
-    const char filename[] = "hello_world.bf";
-    FILE* fp = fopen(filename, "rb");
-    if (!fp) {
-        printf("File not found: %s\n", filename);
-        return -1;
+    FILE *fp = fopen(filename, "rb");
+    if (!fp)
+    {
+        string exception = "File not found: ";
+        exception += filename;
+        throw exception;
     }
     fseek(fp, 0, SEEK_END);
     size_t filesize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    char* code = new char[filesize+1];
-    fread(code, 1, filesize, fp);
-    code[filesize] = '\0';
-    interpret(code, filesize);
+    vector<char> code(filesize);
+    fread(code.data(), 1, filesize, fp);
+    return code;
+}
+
+
+int main(int argc, char* argv[])
+{
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
+        return 1;
+    }
+
+    const char * filename = argv[1];
+    vector<char> program_code;
+    try
+    {
+        program_code = load_code(filename);
+    }
+    catch (string s)
+    {
+        cout << "Error: " << s << endl;
+        return -1;
+    }
+    interpret(program_code.data(), program_code.size());
 }
